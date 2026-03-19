@@ -1,0 +1,1 @@
+;(function(){var c={define:function(){},require:function(){},platformId:'android',version:'12.0.1'};window.cordova=c;document.addEventListener('DOMContentLoaded',function(){var e=document.createEvent('Event');e.initEvent('deviceready',true,false);document.dispatchEvent(e);});})();
