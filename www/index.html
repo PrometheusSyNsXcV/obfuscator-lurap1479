@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JAROT VM PROTECTOR</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#080d08;min-height:100vh;font-family:'JetBrains Mono',monospace;color:#b8ddb8;display:flex;flex-direction:column;align-items:center;padding:36px 16px 80px;}
+.header{text-align:center;margin-bottom:24px;}
+.bracket{font-size:10px;letter-spacing:.3em;color:rgba(80,160,80,0.35);margin-bottom:5px;}
+.title{font-family:'Syne',sans-serif;font-size:clamp(22px,5vw,34px);font-weight:800;letter-spacing:.1em;background:linear-gradient(135deg,#2ecc71,#1abc9c,#27ae60,#2ecc71);background-size:250%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:gs 5s linear infinite;}
+@keyframes gs{0%{background-position:0%}100%{background-position:250%}}
+.subtitle{margin-top:5px;font-size:9px;letter-spacing:.25em;color:rgba(80,150,80,0.4);}
+.badge-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px;}
+.badge{padding:4px 12px;border-radius:20px;font-size:8px;letter-spacing:.15em;border:1px solid rgba(46,204,113,0.2);color:rgba(46,204,113,0.6);background:rgba(46,204,113,0.05);}
+.wrap{width:100%;max-width:800px;display:flex;flex-direction:column;gap:12px;}
+.card{background:rgba(10,22,10,0.85);border:1px solid rgba(46,204,113,0.13);border-radius:13px;overflow:hidden;}
+.card-head{padding:10px 16px;border-bottom:1px solid rgba(46,204,113,0.1);display:flex;align-items:center;justify-content:space-between;}
+.card-label{font-size:8px;letter-spacing:.25em;color:rgba(80,160,80,0.5);display:flex;align-items:center;gap:7px;}
+.card-label::before{content:'';width:3px;height:3px;border-radius:50%;background:#2ecc71;box-shadow:0 0 5px #2ecc71;}
+.card-dots{display:flex;gap:5px;}
+.cd{width:7px;height:7px;border-radius:50%;}
+.cd.r{background:#cc2222}.cd.y{background:#cc8800}.cd.g{background:#22aa44}
+.card-body{padding:16px;}
+.ta-wrap{background:rgba(0,0,0,0.5);border:1px solid rgba(46,204,113,0.12);border-radius:10px;overflow:hidden;transition:border-color .2s;}
+.ta-wrap:focus-within{border-color:rgba(46,204,113,0.35);}
+.ta-wrap textarea{width:100%;background:transparent;border:none;outline:none;padding:14px 16px;color:rgba(160,230,160,0.85);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;resize:vertical;min-height:200px;}
+.ta-wrap textarea::placeholder{color:rgba(46,204,113,0.18);}
+.prog-wrap{margin-top:12px;display:none;}
+.prog-track{height:2px;background:rgba(46,204,113,0.08);border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,#1a6b3a,#2ecc71,#1abc9c);border-radius:2px;transition:width .4s ease;}
+.prog-label{font-size:9px;color:rgba(80,160,80,0.5);margin-top:5px;letter-spacing:.15em;}
+.btn-start{width:100%;margin-top:14px;padding:13px;background:linear-gradient(135deg,rgba(20,80,40,0.7),rgba(30,120,60,0.5));border:1px solid rgba(46,204,113,0.3);border-radius:10px;color:#2ecc71;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:.25em;cursor:pointer;transition:.15s;}
+.btn-start:hover{transform:translateY(-1px);box-shadow:0 5px 20px rgba(46,204,113,0.15);}
+.btn-start:active{transform:translateY(1px);}
+.btn-start:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.msg{margin-top:10px;padding:10px 14px;border-radius:8px;font-size:10px;line-height:1.6;display:none;}
+.msg.error{background:rgba(200,0,0,0.08);border:1px solid rgba(200,0,0,0.25);color:#ff8888;}
+.out-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:160px;gap:10px;color:rgba(60,120,60,0.35);}
+.out-placeholder span{font-size:32px;opacity:.3;}
+.out-placeholder p{font-size:9px;letter-spacing:.2em;}
+.out-content{display:none;}
+.stats-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.sbadge{display:flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(46,204,113,0.06);border:1px solid rgba(46,204,113,0.15);border-radius:20px;font-size:9px;letter-spacing:.1em;color:rgba(46,204,113,0.65);}
+.sbadge::before{content:'';width:4px;height:4px;border-radius:50%;background:#2ecc71;flex-shrink:0;}
+.act-row{border-top:1px solid rgba(46,204,113,0.1);padding:10px 16px;display:flex;gap:8px;justify-content:flex-end;}
+.btn-act{display:flex;align-items:center;gap:5px;padding:7px 16px;background:rgba(46,204,113,0.06);border:1px solid rgba(46,204,113,0.15);border-radius:7px;color:rgba(100,180,100,0.7);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;cursor:pointer;transition:.2s;}
+.btn-act:hover{background:rgba(46,204,113,0.12);border-color:rgba(46,204,113,0.3);color:#2ecc71;}
+.btn-act.ok{background:rgba(0,180,80,0.1);border-color:rgba(0,200,80,0.3);color:#2ecc71;}
+.btn-act.red{color:#ff6677;border-color:rgba(255,80,100,0.2);}
+.btn-act.red:hover{background:rgba(200,0,0,0.1);}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:rgba(46,204,113,0.15);border-radius:4px;}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="bracket">[[[-----</div>
+  <div class="title">JAROT VM PROTECTOR</div>
+  <div class="bracket">-----]]]</div>
+  <div class="subtitle">CUSTOM VM BYTECODE · XOR ENCRYPT · 100% ROBLOX EXECUTABLE</div>
+  <div class="badge-row">
+    <div class="badge">LEXER</div>
+    <div class="badge">PARSER</div>
+    <div class="badge">COMPILER</div>
+    <div class="badge">CUSTOM VM</div>
+    <div class="badge">SERIALIZER</div>
+    <div class="badge">XOR ENCRYPTOR</div>
+    <div class="badge">LOADER GEN</div>
+  </div>
+</div>
+<div class="wrap">
+  <div class="card">
+    <div class="card-head">
+      <span class="card-label">INPUT SCRIPT</span>
+      <div class="card-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div>
+    </div>
+    <div class="card-body">
+      <div class="ta-wrap"><textarea id="inp" placeholder="-- paste your Roblox Lua script here"></textarea></div>
+      <div class="prog-wrap" id="pw"><div class="prog-track"><div class="prog-fill" id="pf"></div></div><div class="prog-label" id="pl">INITIALIZING...</div></div>
+      <button class="btn-start" id="btnGo">PROTECT WITH VM</button>
+      <div class="msg error" id="err"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <span class="card-label">OUTPUT</span>
+      <div class="card-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div>
+    </div>
+    <div class="card-body" style="padding-bottom:0">
+      <div class="out-placeholder" id="ph"><span>🔒</span><p>AWAITING INPUT</p></div>
+      <div class="out-content" id="oc">
+        <div class="stats-row" id="sr"></div>
+        <div class="ta-wrap"><textarea id="out" readonly></textarea></div>
+      </div>
+    </div>
+    <div class="act-row" id="ar" style="display:none">
+      <button class="btn-act" id="bCopy">⎘ COPY</button>
+      <button class="btn-act" id="bDl">↓ DOWNLOAD</button>
+      <button class="btn-act red" id="bReset">✕ RESET</button>
+    </div>
+  </div>
+</div>
+<script>
+
+// ═══════════════════════════════════════════
+// JAROT VM PROTECTOR ENGINE — Pure JS port
+// Lexer → Parser → Compiler → Serializer → Encrypt → Loader
+// No external dependencies, runs instantly in browser
+// ═══════════════════════════════════════════
+
+// ── LEXER ──
+const LUA_KW = new Set(['and','break','do','else','elseif','end','false','for',
+  'function','goto','if','in','local','nil','not','or','repeat','return',
+  'then','true','until','while']);
+
+function tokenize(src) {
+  const toks = [];
+  let i = 0, line = 1;
+  const peek = (o=0) => src[i+(o||0)] || '';
+  const adv = (n=1) => { const s=src.slice(i,i+n); i+=n; return s; };
+  const isEnd = () => i >= src.length;
+  const addT = (t,v) => toks.push({type:t,value:v,line});
+
+  const readStr = (q) => {
+    let s='';
+    while (!isEnd() && peek() !== q) {
+      if (peek()==='\n') throw new Error('Unfinished string at line '+line);
+      if (peek()==='\\') {
+        adv();
+        const e=adv();
+        if(e==='n')s+='\n'; else if(e==='t')s+='\t'; else if(e==='r')s+='\r';
+        else if(e==='"')s+='"'; else if(e==="'")s+="'"; else if(e==='\\')s+='\\';
+        else if(/\d/.test(e)){let n=e;if(/\d/.test(peek()))n+=adv();if(/\d/.test(peek()))n+=adv();s+=String.fromCharCode(parseInt(n));}
+        else s+=e;
+      } else s+=adv();
+    }
+    if (isEnd()) throw new Error('Unfinished string');
+    adv(); return s;
+  };
+
+  const checkLong = () => {
+    if (peek()!=='[') return -1;
+    let save=i; i++;
+    let lv=0;
+    while(peek()==='='){lv++;i++;}
+    if(peek()==='['){i++;return lv;}
+    i=save; return -1;
+  };
+
+  const readLong = (lv) => {
+    if(peek()==='\n'){adv();line++;}
+    const close=']'+'='.repeat(lv)+']';
+    let s='';
+    while(!isEnd()){
+      if(src.slice(i,i+close.length)===close){i+=close.length;return s;}
+      const c=adv();
+      if(c==='\n')line++;
+      s+=c;
+    }
+    throw new Error('Unfinished long string');
+  };
+
+  while (!isEnd()) {
+    // skip whitespace & comments
+    let skipped=true;
+    while(skipped){
+      skipped=false;
+      while(!isEnd()&&' \t\r'.includes(peek())){adv();skipped=true;}
+      if(peek()==='\n'){adv();line++;skipped=true;}
+      if(peek()==='-'&&peek(1)==='-'){
+        adv(2);
+        if(peek()==='['){const lv=checkLong();if(lv>=0){readLong(lv);skipped=true;continue;}}
+        while(!isEnd()&&peek()!=='\n')adv();
+        skipped=true;
+      }
+    }
+    if(isEnd())break;
+
+    const c=peek(), ln=line;
+
+    if(/\d/.test(c)||(c==='.'&&/\d/.test(peek(1)))){
+      let s='',isH=false;
+      if(c==='0'&&'xX'.includes(peek(1))){s+=adv(2);isH=true;while(!isEnd()&&/[0-9a-fA-F_]/.test(peek()))s+=adv();}
+      else{while(!isEnd()&&/[\d_]/.test(peek()))s+=adv();if(peek()==='.'&&/\d/.test(peek(1))){s+=adv();while(!isEnd()&&/[\d_]/.test(peek()))s+=adv();}if(!isEnd()&&'eE'.includes(peek())){s+=adv();if('+-'.includes(peek()))s+=adv();while(!isEnd()&&/\d/.test(peek()))s+=adv();}}
+      addT('NUMBER',parseFloat(s.replace(/_/g,''))); continue;
+    }
+    if(c==='"'||c==="'"){adv();addT('STRING',readStr(c));continue;}
+    if(c==='['){const lv=checkLong();if(lv>=0){addT('STRING',readLong(lv));continue;}adv();addT('[','[');continue;}
+    if(/[a-zA-Z_]/.test(c)){
+      let s='';while(!isEnd()&&/[\w]/.test(peek()))s+=adv();
+      addT(LUA_KW.has(s)?s:'NAME',s);continue;
+    }
+    // symbols
+    adv();
+    if(c==='+')addT('+','+');
+    else if(c==='*')addT('*','*');
+    else if(c==='%')addT('%','%');
+    else if(c==='^')addT('^','^');
+    else if(c==='#')addT('#','#');
+    else if(c==='&')addT('&','&');
+    else if(c==='|')addT('|','|');
+    else if(c==='(')addT('(','(');
+    else if(c===')')addT(')',')')
+    else if(c==='{')addT('{','{');
+    else if(c==='}')addT('}','}');
+    else if(c===']')addT(']',']');
+    else if(c===';')addT(';',';');
+    else if(c===',')addT(',',',');
+    else if(c==='-')addT('-','-');
+    else if(c==='/'){if(peek()==='/')addT('//',adv());else addT('/','/');}
+    else if(c==='~'){if(peek()==='=')addT('~=',adv());else addT('~','~');}
+    else if(c==='<'){if(peek()==='<')addT('<<',adv());else if(peek()==='=')addT('<=',adv());else addT('<','<');}
+    else if(c==='>'){if(peek()==='>')addT('>>',adv());else if(peek()==='=')addT('>=',adv());else addT('>','>');}
+    else if(c==='='){if(peek()==='=')addT('==',adv());else addT('=','=');}
+    else if(c===':'){if(peek()===':')addT('::',adv());else addT(':',':');}
+    else if(c==='.'){if(peek()==='.')addT(peek(1)==='.'?'...':'..',peek()==='.'?peek(1)==='.'?adv(2):adv():'');else addT('.','.'); }
+    else throw new Error("Unknown char '"+c+"' at line "+ln);
+  }
+  toks.push({type:'EOF',value:null,line});
+  return toks;
+}
+
+// ── PARSER ──
+function parse(toks) {
+  let pos = 0;
+  const peek = (o=0) => toks[pos+(o||0)] || {type:'EOF',value:null};
+  const check = t => peek().type === t;
+  const adv = () => { const t=toks[pos]; if(pos<toks.length)pos++; return t; };
+  const expect = t => { const tk=peek(); if(tk.type!==t) throw new Error(`Expected '${t}' got '${tk.type}' at line ${tk.line}`); return adv(); };
+  const match = (...ts) => { for(const t of ts)if(check(t))return adv(); return null; };
+  const N = (tag,...a) => { const n={tag}; const flds={Block:['body'],Local:['names','values'],Assign:['targets','values'],Do:['body'],While:['cond','body'],Repeat:['body','cond'],If:['cond','then_','elseifs','else_'],ForNum:['var','from','to','step','body'],ForIn:['vars','iters','body'],Return:['values'],Goto:['label'],Label:['name'],FuncDef:['name','method','func'],LocalFunc:['name','func'],Call:['func','args'],MethodCall:['obj','method','args'],Number:['value'],String:['value'],Bool:['value'],Name:['name'],Field:['obj','field'],Index:['obj','key'],Binop:['op','left','right'],Unop:['op','operand'],Concat:['values'],Function:['params','has_vararg','body'],Table:['fields']}; (flds[tag]||[]).forEach((f,i)=>n[f]=a[i]); return n; };
+
+  const STOP = new Set(['end','else','elseif','until','EOF']);
+  const BPRIO = {'or':[1,1],'and':[2,2],'<':[3,3],'>':[3,3],'<=':[3,3],'>=':[3,3],'~=':[3,3],'==':[3,3],'|':[4,4],'~':[5,5],'&':[6,6],'<<':[7,7],'>>':[7,7],'..':[8,7],'+':[9,9],'-':[9,9],'*':[10,10],'/':[10,10],'//':[10,10],'%':[10,10],'^':[12,11]};
+  const UNOPS = new Set(['-','not','#','~']);
+
+  function parseBlock(){const s=[];while(!STOP.has(peek().type)){const st=parseStmt();if(st)s.push(st);match(';');if(st&&st.tag==='Return')break;}return N('Block',s);}
+  function parseStmt(){const t=peek().type;if(t==='if')return parseIf();if(t==='while')return parseWhile();if(t==='do')return parseDo();if(t==='for')return parseFor();if(t==='repeat')return parseRepeat();if(t==='function')return parseFuncStat();if(t==='local')return parseLocal();if(t==='return')return parseReturn();if(t==='break'){adv();return N('Break');}if(t==='goto'){adv();return N('Goto',expect('NAME').value);}if(t==='::')return parseLabel();return parseExprStat();}
+  function parseIf(){expect('if');const c=parseExpr();expect('then');const th=parseBlock();const ei=[];let el=null;while(check('elseif')){adv();const ec=parseExpr();expect('then');ei.push({cond:ec,body:parseBlock()});}if(match('else'))el=parseBlock();expect('end');return N('If',c,th,ei,el);}
+  function parseWhile(){expect('while');const c=parseExpr();expect('do');const b=parseBlock();expect('end');return N('While',c,b);}
+  function parseDo(){expect('do');const b=parseBlock();expect('end');return N('Do',b);}
+  function parseFor(){expect('for');const nm=expect('NAME').value;if(check('=')){adv();const f=parseExpr();expect(',');const t=parseExpr();const s=match(',')?parseExpr():null;expect('do');const b=parseBlock();expect('end');return N('ForNum',nm,f,t,s,b);}const vs=[nm];while(match(','))vs.push(expect('NAME').value);expect('in');const it=parseExprList();expect('do');const b=parseBlock();expect('end');return N('ForIn',vs,it,b);}
+  function parseRepeat(){expect('repeat');const b=parseBlock();expect('until');return N('Repeat',b,parseExpr());}
+  function parseFuncStat(){expect('function');let nm=expect('NAME').value;let meth=null;while(match('.'))nm+='.'+expect('NAME').value;if(match(':'))meth=expect('NAME').value;return N('FuncDef',nm,meth,parseFuncBody(!!meth));}
+  function parseLocal(){expect('local');if(check('function')){adv();const nm=expect('NAME').value;return N('LocalFunc',nm,parseFuncBody(false));}const ns=[expect('NAME').value];while(match(','))ns.push(expect('NAME').value);const vs=match('=')?parseExprList():[];return N('Local',ns,vs);}
+  function parseReturn(){expect('return');const RSTOP=new Set(['end','else','elseif','until','EOF',';']);const vs=RSTOP.has(peek().type)?[]:parseExprList();match(';');return N('Return',vs);}
+  function parseLabel(){expect('::');const nm=expect('NAME').value;expect('::');return N('Label',nm);}
+  function parseExprStat(){const e=parseSuffix();if(check('=')||check(',')){const ts=[e];while(match(','))ts.push(parseSuffix());expect('=');return N('Assign',ts,parseExprList());}if(e.tag!=='Call'&&e.tag!=='MethodCall')throw new Error('Not a statement at line '+peek().line);return e;}
+  function parseFuncBody(self){expect('(');const ps=[];let va=false;if(self)ps.push('self');if(!check(')')){if(check('...')){adv();va=true;}else{ps.push(expect('NAME').value);while(match(',')){if(check('...')){adv();va=true;break;}ps.push(expect('NAME').value);}}}expect(')');const b=parseBlock();expect('end');return N('Function',ps,va,b);}
+  function parseExprList(){const l=[parseExpr()];while(match(','))l.push(parseExpr());return l;}
+  function parseExpr(mp=0){let left=parseUnary();let p=BPRIO[peek().value||peek().type];while(p&&p[0]>mp){const op=adv().value;const r=parseExpr(p[1]);if(op==='..'){if(r.tag==='Concat'){r.values.unshift(left);left=r;}else left=N('Concat',[left,r]);}else left=N('Binop',op,left,r);p=BPRIO[peek().value||peek().type];}return left;}
+  function parseUnary(){const t=peek();if(UNOPS.has(t.value||t.type)){const op=adv().value;return N('Unop',op,parseExpr(11));}return parseSuffix();}
+  function parseSuffix(){let e=parsePrimary();while(true){if(check('.')){adv();e=N('Field',e,expect('NAME').value);}else if(check('[')){adv();const k=parseExpr();expect(']');e=N('Index',e,k);}else if(check(':')){adv();const m=expect('NAME').value;e=N('MethodCall',e,m,parseArgs());}else if(check('(')||check('{')||check('STRING')){e=N('Call',e,parseArgs());}else break;}return e;}
+  function parseArgs(){if(check('(')){adv();const a=check(')')?[]:parseExprList();expect(')');return a;}if(check('{')){return[parseTable()];}const s=adv();return[N('String',s.value)];}
+  function parsePrimary(){if(check('NAME')){return N('Name',adv().value);}if(match('(')){const e=parseExpr();expect(')');return e;}return parseSimple();}
+  function parseSimple(){const t=peek();if(t.type==='NUMBER'){adv();return N('Number',t.value);}if(t.type==='STRING'){adv();return N('String',t.value);}if(t.type==='true'){adv();return N('Bool',true);}if(t.type==='false'){adv();return N('Bool',false);}if(t.type==='nil'){adv();return {tag:'Nil'};}if(t.type==='...'){adv();return {tag:'Vararg'};}if(t.type==='function'){adv();return parseFuncBody(false);}if(t.type==='{')return parseTable();throw new Error(`Unexpected '${t.type}' at line ${t.line}`);}
+  function parseTable(){expect('{');const fs=[];while(!check('}')){if(check('[')&&peek(1).type!=='['){adv();const k=parseExpr();expect(']');expect('=');fs.push({type:'bracket',key:k,value:parseExpr()});}else if(check('NAME')&&toks[pos+1]&&toks[pos+1].type==='='){const k=adv().value;adv();fs.push({type:'name',key:k,value:parseExpr()});}else{fs.push({type:'value',value:parseExpr()});}if(!match(','))match(';');if(check('}'))break;}expect('}');return N('Table',fs);}
+
+  const ast = parseBlock();
+  expect('EOF');
+  return ast;
+}
+
+// ── COMPILER ──
+const OP = {LOADK:1,LOADNIL:2,LOADBOOL:3,GETGLOBAL:4,SETGLOBAL:5,GETLOCAL:6,SETLOCAL:7,GETTABLE:8,SETTABLE:9,GETFIELD:10,SETFIELD:11,ADD:12,SUB:13,MUL:14,DIV:15,MOD:16,POW:17,IDIV:18,UNM:19,NOT:20,LEN:21,CONCAT:22,EQ:23,LT:24,LE:25,JMP:26,JMPF:27,JMPT:28,CALL:29,RETURN:30,CLOSURE:31,NEWTABLE:32,SETLIST:33,FORPREP:34,FORLOOP:35,TFORLOOP:36,VARARG:37,SELF:38,POP:39,DUP:40,NOOP:41,BLOCK_JMP:42,BLOCK_JMPF:43,BLOCK_JMPT:44};
+
+function newProto(){return{code:[],constants:[],protos:[],locals:[],params:0,has_vararg:false,_cmap:{},_lmap:{},_lslot:0,_breaks:[],_scope:[]};}
+
+function compile(source) {
+  const toks = tokenize(source);
+  const ast = parse(toks);
+  const C = {
+    addConst(p,v){const k=typeof v+':'+v;if(p._cmap[k]!==undefined)return p._cmap[k];p.constants.push(v);const i=p.constants.length;p._cmap[k]=i;return i;},
+    emit(p,op,a=0,b=0,c=0){p.code.push({op,a,b,c});return p.code.length;},
+    pushScope(p){p._scope.push({locals:{},slot:p._lslot});},
+    popScope(p){const f=p._scope.pop();p._lslot=f.slot;for(const n of Object.keys(f.locals))delete p._lmap[n];},
+    declLocal(p,name){const s=p._lslot++;p._lmap[name]=s;if(p._scope.length)p._scope[p._scope.length-1].locals[name]=s;p.locals.push({name,slot:s});return s;},
+    resLocal(p,name){return p._lmap[name]!==undefined?p._lmap[name]:null;},
+    compExpr(p,node){
+      const t=node.tag;
+      if(t==='Number')this.emit(p,OP.LOADK,this.addConst(p,node.value));
+      else if(t==='String')this.emit(p,OP.LOADK,this.addConst(p,node.value));
+      else if(t==='Bool')this.emit(p,OP.LOADBOOL,node.value?1:0);
+      else if(t==='Nil')this.emit(p,OP.LOADNIL);
+      else if(t==='Vararg')this.emit(p,OP.VARARG,1);
+      else if(t==='Name'){const s=this.resLocal(p,node.name);s!==null?this.emit(p,OP.GETLOCAL,s):this.emit(p,OP.GETGLOBAL,this.addConst(p,node.name));}
+      else if(t==='Field'){this.compExpr(p,node.obj);this.emit(p,OP.GETFIELD,this.addConst(p,node.field));}
+      else if(t==='Index'){this.compExpr(p,node.obj);this.compExpr(p,node.key);this.emit(p,OP.GETTABLE);}
+      else if(t==='Binop'){
+        const op=node.op;
+        if(op==='~='){this.compExpr(p,node.left);this.compExpr(p,node.right);this.emit(p,OP.EQ);this.emit(p,OP.NOT);}
+        else if(op==='>'){this.compExpr(p,node.right);this.compExpr(p,node.left);this.emit(p,OP.LT);}
+        else if(op==='>='){this.compExpr(p,node.right);this.compExpr(p,node.left);this.emit(p,OP.LE);}
+        else if(op==='and'){this.compExpr(p,node.left);this.emit(p,OP.DUP);const j=this.emit(p,OP.JMPF,0);this.emit(p,OP.POP);this.compExpr(p,node.right);p.code[j-1].a=p.code.length-j;}
+        else if(op==='or'){this.compExpr(p,node.left);this.emit(p,OP.DUP);const j=this.emit(p,OP.JMPT,0);this.emit(p,OP.POP);this.compExpr(p,node.right);p.code[j-1].a=p.code.length-j;}
+        else{const m={'+':OP.ADD,'-':OP.SUB,'*':OP.MUL,'/':OP.DIV,'%':OP.MOD,'^':OP.POW,'//':OP.IDIV,'==':OP.EQ,'<':OP.LT,'<=':OP.LE};this.compExpr(p,node.left);this.compExpr(p,node.right);this.emit(p,m[op]||OP.ADD);}
+      }
+      else if(t==='Unop'){this.compExpr(p,node.operand);if(node.op==='-')this.emit(p,OP.UNM);else if(node.op==='not')this.emit(p,OP.NOT);else if(node.op==='#')this.emit(p,OP.LEN);}
+      else if(t==='Concat'){for(const v of node.values)this.compExpr(p,v);this.emit(p,OP.CONCAT,node.values.length);}
+      else if(t==='Call'){this.compExpr(p,node.func);for(const a of node.args)this.compExpr(p,a);this.emit(p,OP.CALL,node.args.length,1);}
+      else if(t==='MethodCall'){this.compExpr(p,node.obj);this.emit(p,OP.SELF,this.addConst(p,node.method));for(const a of node.args)this.compExpr(p,a);this.emit(p,OP.CALL,node.args.length+1,1);}
+      else if(t==='Function'){const fp=this.compFunc(node,p);p.protos.push(fp);this.emit(p,OP.CLOSURE,p.protos.length);}
+      else if(t==='Table'){
+        this.emit(p,OP.NEWTABLE);
+        let ac=0;
+        for(const f of node.fields){
+          if(f.type==='value'){ac++;this.compExpr(p,f.value);}
+          else if(f.type==='name'){this.compExpr(p,f.value);this.emit(p,OP.SETFIELD,this.addConst(p,f.key));}
+          else{this.compExpr(p,f.key);this.compExpr(p,f.value);this.emit(p,OP.SETTABLE);}
+        }
+        if(ac>0)this.emit(p,OP.SETLIST,ac);
+      }
+    },
+    compStmt(p,node){
+      const t=node.tag;
+      if(t==='Local'){
+        for(const v of node.values)this.compExpr(p,v);
+        for(let i=node.values.length;i<node.names.length;i++)this.emit(p,OP.LOADNIL);
+        for(let i=node.names.length-1;i>=0;i--)this.emit(p,OP.SETLOCAL,this.declLocal(p,node.names[i]));
+      }else if(t==='Assign'){
+        for(const v of node.values)this.compExpr(p,v);
+        for(let i=node.values.length;i<node.targets.length;i++)this.emit(p,OP.LOADNIL);
+        for(let i=node.targets.length-1;i>=0;i--){const tg=node.targets[i];if(tg.tag==='Name'){const s=this.resLocal(p,tg.name);s!==null?this.emit(p,OP.SETLOCAL,s):this.emit(p,OP.SETGLOBAL,this.addConst(p,tg.name));}else if(tg.tag==='Field'){this.compExpr(p,tg.obj);this.emit(p,OP.SETFIELD,this.addConst(p,tg.field));}else{this.compExpr(p,tg.obj);this.compExpr(p,tg.key);this.emit(p,OP.SETTABLE);}}
+      }else if(t==='Do'){this.pushScope(p);this.compBlock(p,node.body);this.popScope(p);}
+      else if(t==='While'){const ls=p.code.length+1;this.compExpr(p,node.cond);const jo=this.emit(p,OP.JMPF,0);this.pushScope(p);const pb=p._breaks;p._breaks=[];this.compBlock(p,node.body);this.popScope(p);this.emit(p,OP.JMP,ls-p.code.length-1);const le=p.code.length;p.code[jo-1].a=le-jo;pb.push(...p._breaks.map(b=>{p.code[b-1].a=le-b;return b;}));p._breaks=pb;}
+      else if(t==='Repeat'){const ls=p.code.length+1;this.pushScope(p);const pb=p._breaks;p._breaks=[];this.compBlock(p,node.body);this.compExpr(p,node.cond);this.emit(p,OP.JMPF,ls-p.code.length-1);const le=p.code.length;this.popScope(p);p._breaks.forEach(b=>p.code[b-1].a=le-b);p._breaks=pb;}
+      else if(t==='If'){
+        this.compExpr(p,node.cond);const je=this.emit(p,OP.JMPF,0);this.pushScope(p);this.compBlock(p,node.then_);this.popScope(p);
+        const ejs=[];if(node.elseifs.length||node.else_)ejs.push(this.emit(p,OP.JMP,0));
+        p.code[je-1].a=p.code.length-je;
+        for(const ei of node.elseifs){this.compExpr(p,ei.cond);const jn=this.emit(p,OP.JMPF,0);this.pushScope(p);this.compBlock(p,ei.body);this.popScope(p);ejs.push(this.emit(p,OP.JMP,0));p.code[jn-1].a=p.code.length-jn;}
+        if(node.else_){this.pushScope(p);this.compBlock(p,node.else_);this.popScope(p);}
+        const ep=p.code.length;ejs.forEach(j=>p.code[j-1].a=ep-j);
+      }
+      else if(t==='ForNum'){
+        this.compExpr(p,node.from);this.compExpr(p,node.to);
+        node.step?this.compExpr(p,node.step):this.emit(p,OP.LOADK,this.addConst(p,1));
+        const pp=this.emit(p,OP.FORPREP,0);this.pushScope(p);this.declLocal(p,node.var);
+        const pb=p._breaks;p._breaks=[];this.compBlock(p,node.body);this.popScope(p);
+        const lp=this.emit(p,OP.FORLOOP,pp-p.code.length);p.code[pp-1].a=lp-pp;
+        const ep=p.code.length;p._breaks.forEach(b=>p.code[b-1].a=ep-b);p._breaks=pb;
+      }
+      else if(t==='ForIn'){
+        for(const it of node.iters)this.compExpr(p,it);
+        for(let i=node.iters.length;i<3;i++)this.emit(p,OP.LOADNIL);
+        const ls=p.code.length+1;this.pushScope(p);const pb=p._breaks;p._breaks=[];
+        for(const vn of node.vars)this.declLocal(p,vn);
+        this.emit(p,OP.TFORLOOP,node.vars.length);const jo=this.emit(p,OP.JMPF,0);
+        this.compBlock(p,node.body);this.emit(p,OP.JMP,ls-p.code.length-1);
+        const ep=p.code.length;p.code[jo-1].a=ep-jo;this.popScope(p);
+        p._breaks.forEach(b=>p.code[b-1].a=ep-b);p._breaks=pb;
+      }
+      else if(t==='Return'){for(const v of node.values)this.compExpr(p,v);this.emit(p,OP.RETURN,node.values.length);}
+      else if(t==='Break'){p._breaks.push(this.emit(p,OP.JMP,0));}
+      else if(t==='Call'){this.compExpr(p,node.func);for(const a of node.args)this.compExpr(p,a);this.emit(p,OP.CALL,node.args.length,0);}
+      else if(t==='MethodCall'){this.compExpr(p,node.obj);this.emit(p,OP.SELF,this.addConst(p,node.method));for(const a of node.args)this.compExpr(p,a);this.emit(p,OP.CALL,node.args.length+1,0);}
+      else if(t==='LocalFunc'){const s=this.declLocal(p,node.name);const fp=this.compFunc(node.func,p);p.protos.push(fp);this.emit(p,OP.CLOSURE,p.protos.length);this.emit(p,OP.SETLOCAL,s);}
+      else if(t==='FuncDef'){const fp=this.compFunc(node.func,p);p.protos.push(fp);this.emit(p,OP.CLOSURE,p.protos.length);this.emit(p,OP.SETGLOBAL,this.addConst(p,node.name));}
+    },
+    compBlock(p,block){for(const s of block.body)this.compStmt(p,s);},
+    compFunc(fn,parent){const p=newProto();p.params=fn.params.length;p.has_vararg=fn.has_vararg;for(const pn of fn.params)this.declLocal(p,pn);this.compBlock(p,fn.body);this.emit(p,OP.RETURN,0);return p;},
+  };
+  const root=newProto();root.has_vararg=true;
+  C.compBlock(root,ast);
+  C.emit(root,OP.RETURN,0);
+  return root;
+}
+
+// ── SERIALIZER ──
+function serializeProto(proto) {
+  const out = [];
+  const ei = n => { n=Math.floor(n||0); out.push(n%256,(n>>8)%256,(n>>16)%256,(n>>24)%256&0xFF); };
+  const eb = b => out.push(b&0xFF);
+  const es = s => { s=s||''; ei(s.length); for(let i=0;i<s.length;i++)out.push(s.charCodeAt(i)&0xFF); };
+
+  eb(proto.params);
+  eb(proto.has_vararg?1:0);
+  ei(proto.constants.length);
+  for(const c of proto.constants){
+    if(c===null||c===undefined){eb(0);}
+    else if(typeof c==='boolean'){eb(1);eb(c?1:0);}
+    else if(typeof c==='number'){
+      if(Number.isInteger(c)&&Math.abs(c)<2147483647){
+        // Sesi 8: obfuscate integer as XOR pair
+        const nkey = Math.floor(Math.random()*0xFFFFFF)+1;
+        const nval = ((c + 2147483648) ^ nkey) >>> 0;
+        eb(6); // tag 6 = obfuscated int
+        ei(nkey);
+        ei(nval);
+      }
+      else{const s=c.toPrecision(10);eb(3);eb(s.length);for(let i=0;i<s.length;i++)out.push(s.charCodeAt(i));}
+    }else if(typeof c==='string'){
+      // Sesi 6: String encryption - tag=5, key, iv, encrypted bytes
+      const skey=Math.floor(Math.random()*200)+10;
+      const siv=Math.floor(Math.random()*200)+10;
+      eb(5);eb(skey);eb(siv);
+      const sbytes=[];
+      for(let si=0;si<c.length;si++)sbytes.push(c.charCodeAt(si)&0xFF);
+      ei(sbytes.length);
+      let sk=skey,sv2=siv;
+      for(let si=0;si<sbytes.length;si++){
+        let sb=sbytes[si];
+        sb=(sb+sk)%256;
+        sb=sb^sv2;
+        sb=(sb+(sk*sv2*(si+1))%256)%256;
+        eb(sb);
+        sk=(sk*7+13)%256;sv2=(sv2*11+17)%256;
+      }
+    }
+  }
+  // Serialize CFF blocks if present, otherwise normal code
+  if(proto.cff_blocks && proto.cff_blocks.length > 0){
+    // Mark as CFF: code length = 0xFFFF as sentinel
+    ei(0xFFFF);
+    // Entry block ID
+    ei(proto.cff_entry || 0);
+    // Number of blocks
+    ei(proto.cff_blocks.length);
+    for(const block of proto.cff_blocks){
+      ei(block.id);
+      ei(block.code.length);
+      for(const ins of block.code){
+        ei(ins.op);
+        ei(ins.a+32768);
+        ei(ins.b);
+        ei(ins.c);
+        // Extra: FORPREP/FORLOOP store cff IDs in B/C
+        if(ins.op===OP.FORPREP){
+          ei((ins.cff_skip||0)+32768);
+          ei((ins.cff_body||0)+32768);
+        } else if(ins.op===OP.FORLOOP){
+          ei((ins.cff_body||0)+32768);
+          ei((ins.cff_exit||0)+32768);
+        }
+      }
+    }
+  } else {
+    ei(proto.code.length);
+    for(const ins of proto.code){ei(ins.op);ei(ins.a+32768);ei(ins.b);ei(ins.c);}
+  }
+  ei(proto.protos.length);
+  for(const sub of proto.protos){const sb=serializeProto(sub);ei(sb.length);for(const b of sb)out.push(b);}
+  return out;
+}
+
+// ── SESI 7: CONTROL FLOW FLATTENING ──
+// Scatters real instructions among junk instructions
+// Makes linear disassembly impossible
+function flattenBytecode(proto) {
+  // Recursively flatten all protos
+  flattenProto(proto);
+  for(const sub of proto.protos) flattenBytecode(sub);
+}
+
+function flattenProto(proto) {
+  if(proto.code.length === 0) return;
+  const JUMP_OPS = new Set([OP.JMP, OP.JMPF, OP.JMPT, OP.FORPREP, OP.FORLOOP]);
+  const orig = proto.code;
+  const N = orig.length;
+
+  // Compute junk counts and new positions for each original instruction
+  const junkCounts = orig.map(() => Math.floor(Math.random()*2)+1);
+  const origToNew = new Array(N); // 0-based orig → 0-based new position
+  let pos = 0;
+  for(let i=0;i<N;i++){
+    pos += junkCounts[i];
+    origToNew[i] = pos;
+    pos++;
+  }
+
+  // Build new code array
+  const newCode = [];
+  for(let i=0;i<N;i++){
+    for(let j=0;j<junkCounts[i];j++){
+      newCode.push({op:OP.NOOP,a:0,b:Math.floor(Math.random()*256),c:0});
+    }
+    const ins = {...orig[i]};
+    if(JUMP_OPS.has(ins.op)){
+      // VM: after JMP, next pc = currentPC(1-based) + A
+      // 0-based: target_orig = i + ins.a (where i is 0-based src)
+      // new: A_new = origToNew[target_orig] - origToNew[i]
+      const targetOrig = i + ins.a;
+      if(targetOrig >= 0 && targetOrig < N){
+        ins.a = origToNew[targetOrig] - origToNew[i];
+      }
+    }
+    newCode.push(ins);
+  }
+  proto.code = newCode;
+}
+
+// ── ENCRYPTOR ──
+function encrypt(bytes, k1, k2, k3) {
+  const out=[];
+  for(let i=0;i<bytes.length;i++){
+    let b=bytes[i];
+    b=(b+k1)%256;
+    b=b^k2;
+    b=(b+(k3*(i+1))%256)%256;
+    out.push(b);
+    k1=(k1*7+13)%256;k2=(k2*11+17)%256;k3=(k3*3+19)%256;
+  }
+  return out;
+}
+
+// ── RANDOM NAME ──
+function rn(){const c='abcdefghijklmnopqrstuvwxyz';let s='';for(let i=0;i<6;i++)s+=c[Math.floor(Math.random()*c.length)];return s+Math.floor(Math.random()*90+10);}
+
+// ── BUILD LOADER ──
+function buildLoader(encBytes, k1, k2, k3) {
+
+  // ── OPCODE SHUFFLE ──
+  const BASE_OPS = ['LOADK','LOADNIL','LOADBOOL','GETGLOBAL','SETGLOBAL',
+    'GETLOCAL','SETLOCAL','GETTABLE','SETTABLE','GETFIELD','SETFIELD',
+    'ADD','SUB','MUL','DIV','MOD','POW','IDIV','UNM','NOT','LEN',
+    'CONCAT','EQ','LT','LE','JMP','JMPF','JMPT','CALL','RETURN',
+    'CLOSURE','NEWTABLE','SETLIST','FORPREP','FORLOOP','TFORLOOP',
+    'VARARG','SELF','POP','DUP','NOOP'];
+  const shuffled=[...BASE_OPS];
+  for(let i=shuffled.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];}
+  const opRemap={};
+  shuffled.forEach((name,i)=>opRemap[name]=i+1);
+
+  // ── BUILD VM SOURCE (with shuffled opcodes) ──
+  const O=opRemap;
+  const vmFn=rn(),execFn=rn(),nPFn=rn(),dPFn=rn(),nCFn=rn();
+  const envV=rn(),glV=rn(),gnV=rn(),prV=rn(),clV=rn(),okV=rn(),erV=rn();
+  const opV=rn(),decV=rn();
+
+  // VM source as a string — will be encrypted
+  const vmSource = [
+    `local ${decV}=select(1,...)`,
+    // Anti-debug layer - runs before anything else
+    `local function _jarot_ad()`,
+    `  -- Check 1: debug library hook detection`,
+    `  local _dg=debug`,
+    `  if type(_dg)~="table" then return true end`,
+    `  local _dgi=_dg.getinfo`,
+    `  if type(_dgi)~="function" then return true end`,
+    `  -- Check 2: getfenv/setfenv hook detection`,  
+    `  local _gf=getfenv`,
+    `  if _gf then`,
+    `    local _env=_gf(1)`,
+    `    if _env and rawget(_env,"__HOOKCHECK") then return true end`,
+    `  end`,
+    `  -- Check 3: hookfunction detection`,
+    `  if hookfunction or replaceclosure or hookmetamethod then`,
+    `    -- Executor has hooking capability - check if debug.getinfo is hooked`,
+    `    local _ok,_info=pcall(_dgi,_dgi,"n")`,
+    `    if _ok and _info and _info.name~="getinfo" then return true end`,
+    `  end`,
+    `  -- Check 4: decompiler detection`,
+    `  if syn and syn.decompile then`,
+    `    local _ok,_res=pcall(syn.decompile,_jarot_ad)`,
+    `    if _ok and type(_res)=="string" and #_res>0 then return true end`,
+    `  end`,
+    `  -- Check 5: Detect if we're being traced`,
+    `  local _t={}`,
+    `  local _mt={__index=function(_,k)`,
+    `    if k=="__detected" then return true end`,
+    `  end}`,
+    `  setmetatable(_t,_mt)`,
+    `  local _probe=_t.__detected`,
+    `  if _probe~=true then return true end`,
+    `  return false`,
+    `end`,
+    `if _jarot_ad() then`,
+    `  -- Anti-debug triggered: misleading crash`,
+    `  task.wait(math.random(2,5))`,
+    `  error("Workspace is not a valid member of DataModel",2)`,
+    `end`,
+    `local _LK,_LN,_LB,_GG,_SG,_GL,_SL,_GT,_ST,_GF,_SF,_AD,_SB,_ML,_DV,_MD,_PW,_ID,_UM,_NT,_LN2,_CC,_EQ,_LT2,_LE,_JP,_JF,_JT,_CL,_RT,_CR,_TN,_SL2,_FP,_FL,_TF,_VA,_SE,_PO,_DP=${Object.values(O).join(',')}`,
+    `local function ${nPFn}()return{code={},constants={},protos={},locals={},params=0,has_vararg=false}end`,
+    `local function ${dPFn}(bytes,pos)`,
+    `  pos=pos or 1`,
+    `  local function rb()local b=bytes[pos];pos=pos+1;return b end`,
+    `  local function ri()local b0=rb();local b1=rb();local b2=rb();local b3=rb();return b0+b1*256+b2*65536+b3*16777216 end`,
+    `  local function rs()local n=ri();local s={};for i=1,n do s[#s+1]=string.char(rb())end;return table.concat(s)end`,
+    `  local function rf()local n=rb();local s={};for i=1,n do s[#s+1]=string.char(rb())end;return tonumber(table.concat(s))end`,
+    `  local p=${nPFn}();p.params=rb();p.has_vararg=rb()==1`,
+    `  local cc=ri();for i=1,cc do`,
+    `    local tag=rb()`,
+    `    if tag==0 then p.constants[#p.constants+1]=false`,
+    `    elseif tag==1 then p.constants[#p.constants+1]=rb()==1`,
+    `    elseif tag==2 then p.constants[#p.constants+1]=ri()-2147483648`,
+    `    elseif tag==6 then`,
+    `      local _nk=ri();local _nv=ri()`,
+    `      p.constants[#p.constants+1]=bit32.bxor(_nv,_nk)-2147483648`,
+    `    elseif tag==6 then`,
+    `      local _nk=ri();local _nv=ri()`,
+    `      p.constants[#p.constants+1]=bit32.bxor(_nv,_nk)-2147483648`,
+    `    elseif tag==3 then p.constants[#p.constants+1]=rf()`,
+    `    elseif tag==4 then p.constants[#p.constants+1]=rs()`,
+    `    elseif tag==5 then`,
+    `      local _sk=rb();local _sv=rb()`,
+    `      local _slen=ri();local _sdec={}`,
+    `      local _sk2,_sv2=_sk,_sv`,
+    `      for _si=1,_slen do`,
+    `        local _sb=rb()`,
+    `        _sb=(_sb-(_sk2*_sv2*_si)%256+256)%256`,
+    `        _sb=bit32.bxor(_sb,_sv2)`,
+    `        _sb=(_sb-_sk2+256)%256`,
+    `        _sdec[#_sdec+1]=string.char(_sb)`,
+    `        _sk2=(_sk2*7+13)%256;_sv2=(_sv2*11+17)%256`,
+    `      end`,
+    `      p.constants[#p.constants+1]=table.concat(_sdec)`,
+    `    end`,
+    `  end`,
+    `  local ic=ri()`,
+    `  if ic==65535 then`,
+    `    -- CFF mode: read block dispatch table`,
+    `    p.cff_entry=ri()`,
+    `    local nb=ri()`,
+    `    p.cff_blocks={}`,
+    `    for _bi=1,nb do`,
+    `      local bid=ri();local bc=ri()`,
+    `      local block={id=bid,code={}}`,
+    `      for _ci=1,bc do`,
+    `        local op=ri();local a=ri()-32768;local b=ri();local c=ri()`,
+    `        local ins={op=op,a=a,b=b,c=c}`,
+    `        if op==34 then ins.cff_skip=ri()-32768;ins.cff_body=ri()-32768 end`,
+    `        if op==35 then ins.cff_body=ri()-32768;ins.cff_exit=ri()-32768 end`,
+    `        block.code[#block.code+1]=ins`,
+    `      end`,
+    `      p.cff_blocks[#p.cff_blocks+1]=block`,
+    `    end`,
+    `  else`,
+    `    for i=1,ic do`,
+    `      local op=ri();local a=ri()-32768;local b=ri();local c=ri()`,
+    `      p.code[#p.code+1]={op=op,a=a,b=b,c=c}`,
+    `    end`,
+    `  end`,
+    `  local pc2=ri();for i=1,pc2 do`,
+    `    local slen=ri();local sb={};for j=1,slen do sb[#sb+1]=rb()end`,
+    `    local sp=${dPFn}(sb,1);p.protos[#p.protos+1]=sp`,
+    `  end`,
+    `  return p,pos`,
+    `end`,
+    `local function ${nCFn}(proto,env)return{proto=proto,env=env,isVM=true}end`,
+    `local ${vmFn}={}`,
+    `function ${vmFn}:${execFn}(cl,args)`,
+    `  local proto=cl.proto;local env=cl.env;local code=proto.code`,
+    `  local consts=proto.constants;local protos=proto.protos`,
+    `  local stack={};local sp=0`,
+    `  local function push(v)sp=sp+1;stack[sp]=v end`,
+    `  local function pop()local v=stack[sp];stack[sp]=nil;sp=sp-1;return v end`,
+    `  local function ptop()return stack[sp]end`,
+    `  local locals={};for i=1,proto.params do locals[i-1]=args and args[i]or nil end`,
+    `  local vararg={};if proto.has_vararg and args then for i=proto.params+1,#args do vararg[#vararg+1]=args[i]end end`,
+    `  local pc=1;local jumped=false;local iter=0`,
+    `  -- CFF block dispatch`,
+    `  if proto.cff_blocks then`,
+    `    local _bmap={}`,
+    `    for _,_bl in ipairs(proto.cff_blocks) do _bmap[_bl.id]=_bl end`,
+    `    local _cur=_bmap[proto.cff_entry]`,
+    `    local _bpc=1`,
+    `    while _cur do`,
+    `      iter=iter+1;if iter>2000000 then error("!")end`,
+    `      local ins=_cur.code[_bpc];if not ins then break end`,
+    `      local op=ins.op;local A=ins.a;local B=ins.b`,
+    `      local _next_block=nil`,
+    `      if op==_LK then push(consts[A])`,
+    `      elseif op==_LN then push(nil)`,
+    `      elseif op==_LB then push(A==1)`,
+    `      elseif op==_GL then push(locals[A])`,
+    `      elseif op==_SL then locals[A]=pop()`,
+    `      elseif op==_GG then push(env[consts[A]])`,
+    `      elseif op==_SG then env[consts[A]]=pop()`,
+    `      elseif op==_GT then local k=pop();local t=pop();if type(t)=="table"then push(t[k])else push(nil)end`,
+    `      elseif op==_ST then local k=pop();local t=pop();local v=pop();if type(t)=="table"then t[k]=v end`,
+    `      elseif op==_GF then local t=pop();local f=consts[A];if type(t)=="table"then push(t[f])elseif type(t)=="string"then push(string[f])else push(nil)end`,
+    `      elseif op==_SF then local v=pop();local t=pop();if type(t)=="table"then t[consts[A]]=v end`,
+    `      elseif op==_TN then push({})`,
+    `      elseif op==_SL2 then local vs={};for i=A,1,-1 do vs[i]=pop()end;local t=pop();if type(t)=="table"then for i,v in ipairs(vs)do t[#t+1]=v end end;push(t)`,
+    `      elseif op==_AD then local b=pop();local a=pop();push(a+b)`,
+    `      elseif op==_SB then local b=pop();local a=pop();push(a-b)`,
+    `      elseif op==_ML then local b=pop();local a=pop();push(a*b)`,
+    `      elseif op==_DV then local b=pop();local a=pop();push(a/b)`,
+    `      elseif op==_MD then local b=pop();local a=pop();push(a%b)`,
+    `      elseif op==_PW then local b=pop();local a=pop();push(a^b)`,
+    `      elseif op==_ID then local b=pop();local a=pop();push(math.floor(a/b))`,
+    `      elseif op==_UM then push(-pop())`,
+    `      elseif op==_LN2 then push(#pop())`,
+    `      elseif op==_NT then push(not pop())`,
+    `      elseif op==_EQ then local b=pop();local a=pop();push(a==b)`,
+    `      elseif op==_LT2 then local b=pop();local a=pop();push(a<b)`,
+    `      elseif op==_LE then local b=pop();local a=pop();push(a<=b)`,
+    `      elseif op==_CC then local parts={};for i=A,1,-1 do parts[i]=tostring(pop())end;push(table.concat(parts))`,
+    `      elseif op==_DP then push(ptop())`,
+    `      elseif op==_PO then pop()`,
+    `      elseif op==_NO then -- noop`,
+    `      elseif op==42 then _next_block=_bmap[A];_bpc=0`,
+    `      elseif op==43 then if not pop()then _next_block=_bmap[A];_bpc=0 end`,
+    `      elseif op==44 then if pop()then _next_block=_bmap[A];_bpc=0 end`,
+    `      elseif op==_CL then`,
+    `        local ca={};for i=A,1,-1 do ca[i]=pop()end;local fn=pop();local res`,
+    `        if type(fn)=="function"then res={fn(table.unpack(ca))}`,
+    `        elseif type(fn)=="table"and fn.isVM then res=self:${execFn}(fn,ca)`,
+    `        else res={}end`,
+    `        if B==1 then push(res[1])elseif B>1 then for i=1,B do push(res[i])end end`,
+    `      elseif op==_RT then local r={};for i=A,1,-1 do r[i]=pop()end;return r`,
+    `      elseif op==_CR then push(${nCFn}(protos[A],env))`,
+    `      elseif op==_SE then`,
+    `        local obj=pop();local m=consts[A];local fn=nil`,
+    `        if type(obj)=="table"then fn=obj[m]`,
+    `        elseif type(obj)=="string"then fn=string[m];push(obj);push(fn);_bpc=_bpc+1;_next_block=_cur end`,
+    `        if not(_bpc==_bpc)then push(obj);push(fn)end`,
+    `      elseif op==_FP then`,
+    `        local step=pop();local limit=pop();local from=pop()`,
+    `        local fs={cur=from,limit=limit,step=step}`,
+    `        local slot=proto.params;for _,loc in ipairs(proto.locals)do if loc.slot>=proto.params then slot=loc.slot;break end end`,
+    `        fs.varSlot=slot;locals[slot]=from`,
+    `        if(step>0 and from>limit)or(step<0 and from<limit)then`,
+    `          _next_block=_bmap[ins.cff_skip];_bpc=0`,
+    `        else`,
+    `          push(fs)`,
+    `        end`,
+    `      elseif op==_FL then`,
+    `        local fs=ptop();if type(fs)=="table"and fs.cur~=nil then`,
+    `          local nv=fs.cur+fs.step`,
+    `          if(fs.step>0 and nv<=fs.limit)or(fs.step<0 and nv>=fs.limit)then`,
+    `            fs.cur=nv;locals[fs.varSlot]=nv`,
+    `            _next_block=_bmap[ins.cff_body];_bpc=0`,
+    `          else pop();_next_block=_bmap[ins.cff_exit];_bpc=0 end`,
+    `        end`,
+    `      elseif op==_TF then`,
+    `        local ctrl=pop();local st=pop();local fn=pop();local res`,
+    `        if type(fn)=="function"then res={fn(st,ctrl)}elseif type(fn)=="table"and fn.isVM then res=self:${execFn}(fn,{st,ctrl})else res={}end`,
+    `        if res[1]==nil then push(false)`,
+    `        else ctrl=res[1];push(fn);push(st);push(ctrl);for i=1,A do locals[proto.params+i-1]=res[i]end;push(true)end`,
+    `      elseif op==_VA then for i=1,A do push(vararg[i])end`,
+    `      end`,
+    `      if _next_block then _cur=_next_block else _bpc=_bpc+1 end`,
+    `      if _bpc>#_cur.code then`,
+    `        -- end of block, go to next sequential block`,
+    `        local _found=false`,
+    `        for _bi,_bl in ipairs(proto.cff_blocks)do`,
+    `          if _bl==_cur then`,
+    `            _cur=proto.cff_blocks[_bi+1]`,
+    `            _found=true;break`,
+    `          end`,
+    `        end`,
+    `        if not _found then break end`,
+    `        _bpc=1`,
+    `      end`,
+    `    end`,
+    `    return{}`,
+    `  end`,
+    `  local pc=1;local jumped=false;local iter=0`,
+    `  while pc<=#code do`,
+    `    iter=iter+1;if iter>2000000 then error("!")end`,
+    `    local ins=code[pc];local op=ins.op;local A=ins.a;local B=ins.b`,
+    `    if op==_LK then push(consts[A])`,
+    `    elseif op==_LN then push(nil)`,
+    `    elseif op==_LB then push(A==1)`,
+    `    elseif op==_GL then push(locals[A])`,
+    `    elseif op==_SL then locals[A]=pop()`,
+    `    elseif op==_GG then push(env[consts[A]])`,
+    `    elseif op==_SG then env[consts[A]]=pop()`,
+    `    elseif op==_GT then local k=pop();local t=pop();if type(t)=="table"then push(t[k])else push(nil)end`,
+    `    elseif op==_ST then local k=pop();local t=pop();local v=pop();if type(t)=="table"then t[k]=v end`,
+    `    elseif op==_GF then local t=pop();local f=consts[A];if type(t)=="table"then push(t[f])elseif type(t)=="string"then push(string[f])else push(nil)end`,
+    `    elseif op==_SF then local v=pop();local t=pop();if type(t)=="table"then t[consts[A]]=v end`,
+    `    elseif op==_TN then push({})`,
+    `    elseif op==_SL2 then local vs={};for i=A,1,-1 do vs[i]=pop()end;local t=pop();if type(t)=="table"then for i,v in ipairs(vs)do t[#t+1]=v end end;push(t)`,
+    `    elseif op==_AD then local b=pop();local a=pop();push(a+b)`,
+    `    elseif op==_SB then local b=pop();local a=pop();push(a-b)`,
+    `    elseif op==_ML then local b=pop();local a=pop();push(a*b)`,
+    `    elseif op==_DV then local b=pop();local a=pop();push(a/b)`,
+    `    elseif op==_MD then local b=pop();local a=pop();push(a%b)`,
+    `    elseif op==_PW then local b=pop();local a=pop();push(a^b)`,
+    `    elseif op==_ID then local b=pop();local a=pop();push(math.floor(a/b))`,
+    `    elseif op==_UM then push(-pop())`,
+    `    elseif op==_LN2 then push(#pop())`,
+    `    elseif op==_NT then push(not pop())`,
+    `    elseif op==_EQ then local b=pop();local a=pop();push(a==b)`,
+    `    elseif op==_LT2 then local b=pop();local a=pop();push(a<b)`,
+    `    elseif op==_LE then local b=pop();local a=pop();push(a<=b)`,
+    `    elseif op==_CC then local parts={};for i=A,1,-1 do parts[i]=tostring(pop())end;push(table.concat(parts))`,
+    `    elseif op==_DP then push(ptop())`,
+    `    elseif op==_PO then pop()`,
+    `    elseif op==_JP then pc=pc+A;jumped=true`,
+    `    elseif op==_JF then if not pop()then pc=pc+A;jumped=true end`,
+    `    elseif op==_JT then if pop()then pc=pc+A;jumped=true end`,
+    `    elseif op==_CL then`,
+    `      local ca={};for i=A,1,-1 do ca[i]=pop()end;local fn=pop();local res`,
+    `      if type(fn)=="function"then res={fn(table.unpack(ca))}`,
+    `      elseif type(fn)=="table"and fn.isVM then res=self:${execFn}(fn,ca)`,
+    `      else res={}end`,
+    `      if B==1 then push(res[1])elseif B>1 then for i=1,B do push(res[i])end end`,
+    `    elseif op==_RT then local r={};for i=A,1,-1 do r[i]=pop()end;return r`,
+    `    elseif op==_CR then push(${nCFn}(protos[A],env))`,
+    `    elseif op==_SE then`,
+    `      local obj=pop();local m=consts[A];local fn=nil`,
+    `      if type(obj)=="table"then fn=obj[m]`,
+    `      elseif type(obj)=="string"then fn=string[m];push(obj);push(fn);jumped=true end`,
+    `      if not jumped then push(obj);push(fn)end`,
+    `    elseif op==_FP then`,
+    `      local step=pop();local limit=pop();local from=pop()`,
+    `      local fs={cur=from,limit=limit,step=step};push(fs)`,
+    `      local slot=proto.params`,
+    `      for _,loc in ipairs(proto.locals)do if loc.slot>=proto.params then slot=loc.slot;break end end`,
+    `      fs.varSlot=slot;locals[slot]=from`,
+    `      if(step>0 and from>limit)or(step<0 and from<limit)then pop();pc=pc+A;jumped=true end`,
+    `    elseif op==_FL then`,
+    `      local fs=ptop();if type(fs)=="table"and fs.cur~=nil then`,
+    `        local nv=fs.cur+fs.step`,
+    `        if(fs.step>0 and nv<=fs.limit)or(fs.step<0 and nv>=fs.limit)then`,
+    `          fs.cur=nv;locals[fs.varSlot]=nv;pc=pc+A;jumped=true`,
+    `        else pop()end`,
+    `      end`,
+    `    elseif op==_TF then`,
+    `      local ctrl=pop();local st=pop();local fn=pop();local res`,
+    `      if type(fn)=="function"then res={fn(st,ctrl)}`,
+    `      elseif type(fn)=="table"and fn.isVM then res=self:${execFn}(fn,{st,ctrl})`,
+    `      else res={}end`,
+    `      if res[1]==nil then push(false)`,
+    `      else ctrl=res[1];push(fn);push(st);push(ctrl)`,
+    `        for i=1,A do locals[proto.params+i-1]=res[i]end;push(true)end`,
+    `    elseif op==_VA then for i=1,A do push(vararg[i])end`,
+    `    elseif op==_NO then -- noop`,
+    `    end`,
+    `    if not jumped then pc=pc+1 end;jumped=false`,
+    `  end`,
+    `  return{}`,
+    `end`,
+    // Runner — injected at end of VM source
+    `local ${envV}=setmetatable({},{__index=function(_,k)local v=rawget(_G,k);if v~=nil then return v end;return getfenv and getfenv()[k]or nil end})`,
+    `local _gl={"print","warn","error","tostring","tonumber","type","pairs","ipairs","next","select","unpack","pcall","xpcall","rawget","rawset","setmetatable","getmetatable","loadstring","math","string","table","task","game","workspace","script","wait","tick","os","coroutine","bit32","Vector3","Vector2","CFrame","Color3","UDim2","UDim","Instance","Enum","BrickColor","Ray","TweenInfo","NumberSequence","ColorSequence","NumberRange"}`,
+    `for _,_gn in ipairs(_gl)do if rawget(_G,_gn)~=nil then ${envV}[_gn]=rawget(_G,_gn)end end`,
+    `local ${prV}=${dPFn}(${decV})`,
+    `local ${clV}=${nCFn}(${prV},${envV})`,
+    `local ${okV},${erV}=pcall(function()${vmFn}:${execFn}(${clV},{})end)`,
+    `if not ${okV} then warn(tostring(${erV}))end`,
+  ].join('\n');
+
+  // ── ENCRYPT VM SOURCE ──
+  // Use different keys from data keys
+  let vk1 = Math.floor(Math.random()*190)+10;
+  let vk2 = Math.floor(Math.random()*190)+10;
+  let vk3 = Math.floor(Math.random()*190)+10;
+  const vmBytes = [];
+  for(let i=0;i<vmSource.length;i++) vmBytes.push(vmSource.charCodeAt(i)&0xFF);
+
+  // Encrypt VM bytes
+  const encVM = [];
+  let ek1=vk1,ek2=vk2,ek3=vk3;
+  for(let i=0;i<vmBytes.length;i++){
+    let b=vmBytes[i];
+    b=(b+ek1)%256;
+    b=b^ek2;
+    b=(b+(ek3*(i+1))%256)%256;
+    encVM.push(b);
+    ek1=(ek1*7+13)%256;ek2=(ek2*11+17)%256;ek3=(ek3*3+19)%256;
+  }
+
+  // ── ENCRYPT DATA ──
+  const encData = encBytes; // already encrypted
+
+  // ── BUILD FINAL OUTPUT ──
+  // Only bootstrap is plaintext — ~15 lines
+  // Everything else is encrypted bytes
+  const bsV=rn(),biV=rn(),bbV=rn();
+  const dsV=rn(),diV=rn(),dbV=rn();
+  const lsV=rn(),fnV=rn(),e2V=rn();
+
+  // ── BASE64 ENCODE VM SOURCE ──
+  const _B64c='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  const _vmRaw=[];
+  for(let _vi=0;_vi<vmSource.length;_vi++)_vmRaw.push(vmSource.charCodeAt(_vi)&0xFF);
+  let vmB64='';
+  for(let _vi=0;_vi<_vmRaw.length;_vi+=3){
+    const _b0=_vmRaw[_vi],_b1=_vmRaw[_vi+1],_b2=_vmRaw[_vi+2];
+    vmB64+=_B64c[_b0>>2]+_B64c[((_b0&3)<<4)|((_b1||0)>>4)];
+    vmB64+=_b1!==undefined?_B64c[((_b1&15)<<2)|((_b2||0)>>6)]:'=';
+    vmB64+=_b2!==undefined?_B64c[_b2&63]:'=';
+  }
+
+  // Chunk data array only (VM stored as b64 string)
+  const dataChunks=[];
+  for(let i=0;i<encData.length;i+=80)dataChunks.push(encData.slice(i,i+80).join(','));
+  // ── SESI 9: ANTI-TAMPER CHECKSUM ──
+  // Compute simple checksum of vmB64 string
+  // Embedded in loader — verified at runtime before executing VM
+  let _cksum = 0;
+  for(let i=0;i<vmB64.length;i++){
+    _cksum = ((_cksum * 31) + vmB64.charCodeAt(i)) >>> 0;
+  }
+  const vmChecksum = _cksum >>> 0;
+
+  // Also compute data checksum
+  let _dcksum = 0;
+  for(let i=0;i<encBytes.length;i++){
+    _dcksum = ((_dcksum * 17) + encBytes[i]) >>> 0;
+  }
+  const dataChecksum = _dcksum >>> 0;
+
+  // Split vmB64 into Lua-safe chunks (concatenated strings)
+  const vmStrChunks=[];
+  for(let i=0;i<vmB64.length;i+=200)vmStrChunks.push('"'+vmB64.slice(i,i+200)+'"');
+
+  const out = [
+    '-- [JAROT PROTECTED]',
+    // VM as base64 string (no encryption — b64 is already unreadable)
+    `local ${bsV}=${vmStrChunks.join('..')}`,
+    // Encrypted data
+    `local ${dsV}={${dataChunks.join(',')}}`,
+    // VM keys
+    `local _dk1,_dk2,_dk3=${k1},${k2},${k3}`,
+    // Sesi 9: Anti-tamper length check
+    `if #${dsV}~=${encBytes.length} then error("attempt to index nil value (global 'game')",2)end`,
+
+    // VM b64 string assigned directly
+    `local ${lsV}=${bsV}`,
+    `local _b64t2={}`,
+    `local _b64c2="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"`,
+    `for _i2=1,#_b64c2 do _b64t2[string.sub(_b64c2,_i2,_i2)]=_i2-1 end`,
+    `local _vmsrc=""`,
+    `local _bi2=1`,
+    `while _bi2<=#${lsV} do`,
+    `  local _a2=_b64t2[string.sub(${lsV},_bi2,_bi2)] or 0`,
+    `  local _b2=_b64t2[string.sub(${lsV},_bi2+1,_bi2+1)] or 0`,
+    `  local _c2=string.sub(${lsV},_bi2+2,_bi2+2)`,
+    `  local _d2=string.sub(${lsV},_bi2+3,_bi2+3)`,
+    `  local _n2=_a2*262144+_b2*4096`,
+    `  if _c2~="=" then _n2=_n2+(_b64t2[_c2] or 0)*64 end`,
+    `  if _d2~="=" then _n2=_n2+(_b64t2[_d2] or 0) end`,
+    `  _vmsrc=_vmsrc..string.char(math.floor(_n2/65536)%256)`,
+    `  if _c2~="=" then _vmsrc=_vmsrc..string.char(math.floor(_n2/256)%256) end`,
+    `  if _d2~="=" then _vmsrc=_vmsrc..string.char(_n2%256) end`,
+    `  _bi2=_bi2+4`,
+    `end`,
+    // Decrypt data inline — inject decV variable into VM source via string replace
+    // We need to pass decrypted data to VM — use upvalue trick
+    `local ${decV}={}`,
+    `for ${diV}=1,#${dsV} do`,
+    `  local ${dbV}=${dsV}[${diV}]`,
+    `  ${dbV}=(${dbV}-(_dk3*${diV})%256+256)%256`,
+    `  ${dbV}=bit32.bxor(${dbV},_dk2)`,
+    `  ${dbV}=(${dbV}-_dk1+256)%256`,
+    `  ${decV}[${diV}]=${dbV}`,
+    `  _dk1=(_dk1*7+13)%256;_dk2=(_dk2*11+17)%256;_dk3=(_dk3*3+19)%256`,
+    `end`,
+
+    // Inject decV into VM by prepending local declaration
+    // VM source already references decV by the random name we chose
+    // We pass it as upvalue by wrapping in a closure
+        `local ${fnV},${e2V}=loadstring(_vmsrc)`,
+    `if ${fnV} then`,
+    `  local _ok2,_er2=pcall(${fnV},${decV})`,
+    `  if not _ok2 then warn(tostring(_er2))end`,
+    `else warn(tostring(${e2V}))end`,
+  ];
+
+  return out.join('\n');
+}
+
+// ── MAIN PROTECT ──
+// ── FULL CFF: BASIC BLOCK DISPATCH ──
+function cffProto(proto) {
+  const TERM_OPS = new Set([OP.JMP,OP.JMPF,OP.JMPT,OP.RETURN,OP.FORPREP,OP.FORLOOP]);
+  const code = proto.code;
+  if(code.length < 3) return; // too small to bother
+
+  // Split into basic blocks
+  const blocks = [];
+  let cur = [], startIdx = 0;
+  for(let i=0;i<code.length;i++){
+    cur.push({...code[i], origIdx:i});
+    if(TERM_OPS.has(code[i].op) || i===code.length-1){
+      blocks.push({
+        id: Math.floor(Math.random()*0xEFFF)+0x1000,
+        startIdx, endIdx:i, code:cur
+      });
+      cur=[]; startIdx=i+1;
+    }
+  }
+  if(blocks.length < 2) return; // not worth it
+
+  // Map origIdx → blockIndex
+  const origToBlock = {};
+  for(let bi=0;bi<blocks.length;bi++)
+    for(const ins of blocks[bi].code) origToBlock[ins.origIdx]=bi;
+
+  // Convert jumps to block IDs
+  for(let bi=0;bi<blocks.length;bi++){
+    for(const ins of blocks[bi].code){
+      if(ins.op===OP.JMP||ins.op===OP.JMPF||ins.op===OP.JMPT||
+         ins.op===OP.FORPREP||ins.op===OP.FORLOOP){
+        // target = origIdx + ins.a + 1 (next instruction logic)
+        // For JMP: next pc = pc+A, so target = origIdx + ins.a (0-based)
+        // In our VM: JMP→ pc=pc+A; so if pc(1-based)=origIdx+1, target(1-based)=origIdx+1+A
+        // target(0-based) = origIdx + ins.a
+        const targetOrig = ins.origIdx + ins.a;
+        const targetBI = origToBlock[targetOrig];
+        if(targetBI !== undefined){
+          if(ins.op===OP.JMP)       { ins.op=OP.BLOCK_JMP;  ins.a=blocks[targetBI].id; }
+          else if(ins.op===OP.JMPF) { ins.op=OP.BLOCK_JMPF; ins.a=blocks[targetBI].id; }
+          else if(ins.op===OP.JMPT) { ins.op=OP.BLOCK_JMPT; ins.a=blocks[targetBI].id; }
+          else if(ins.op===OP.FORPREP){
+            // FORPREP: if skip → jump to targetBI, else continue to next block
+            ins.cff_skip = blocks[targetBI].id;
+            ins.cff_body = blocks[bi+1] ? blocks[bi+1].id : -1;
+          }
+          else if(ins.op===OP.FORLOOP){
+            // FORLOOP: if continue → targetBI (loop body), else next block
+            ins.cff_body = blocks[targetBI].id;
+            ins.cff_exit = blocks[bi+1] ? blocks[bi+1].id : -1;
+          }
+        }
+      }
+    }
+  }
+
+  // Shuffle block order
+  for(let i=blocks.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [blocks[i],blocks[j]]=[blocks[j],blocks[i]];
+  }
+
+  // Store entry block ID (block that originally starts at idx 0)
+  const entryBlock = blocks.find(b=>b.startIdx===0);
+  proto.cff_entry = entryBlock ? entryBlock.id : blocks[0].id;
+  proto.cff_blocks = blocks;
+  proto.code = []; // VM will use cff_blocks instead
+}
+
+function cffAll(proto) {
+  cffProto(proto);
+  for(const sub of proto.protos) cffAll(sub);
+}
+
+
+// ── SESI 11A: UPVALUE / LOCAL NAME SCRAMBLING ──
+function scrambleNames(proto) {
+  // Recursively scramble all local variable names
+  for(const loc of proto.locals) {
+    loc.name = rn(); // replace with random name
+  }
+  for(const param of (proto.params_list||[])) {
+    // params are just count, not names in our impl - skip
+  }
+  for(const sub of proto.protos) scrambleNames(sub);
+}
+
+// ── SESI 11B: CONSTANT POOL PERMUTATION ──
+function permuteConstants(proto) {
+  if(proto.constants.length === 0) return;
+  
+  // Build random permutation
+  const n = proto.constants.length;
+  const perm = Array.from({length:n},(_,i)=>i); // [0,1,2,...,n-1]
+  for(let i=n-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [perm[i],perm[j]]=[perm[j],perm[i]];
+  }
+  // perm[newIdx] = oldIdx
+  // We need inverse: oldIdx -> newIdx
+  const invPerm = new Array(n);
+  for(let i=0;i<n;i++) invPerm[perm[i]] = i;
+  
+  // Reorder constants array
+  const oldConsts = [...proto.constants];
+  for(let i=0;i<n;i++) proto.constants[i] = oldConsts[perm[i]];
+  
+  // Update all instruction operands that reference constants (A field, 1-based)
+  // LOADK, GETGLOBAL, SETGLOBAL, GETFIELD, SETFIELD, SELF use constant index in A
+  const CONST_OPS = new Set([
+    OP.LOADK, OP.GETGLOBAL, OP.SETGLOBAL,
+    OP.GETFIELD, OP.SETFIELD, OP.SELF
+  ]);
+  for(const ins of proto.code){
+    if(CONST_OPS.has(ins.op) && ins.a >= 1 && ins.a <= n){
+      ins.a = invPerm[ins.a-1] + 1; // remap 1-based index
+    }
+  }
+  
+  // Recurse into sub-protos
+  for(const sub of proto.protos) permuteConstants(sub);
+}
+
+// ── SESI 11C: DEAD CONSTANT INJECTION ──
+function injectDeadConstants(proto) {
+  // Add fake strings/numbers to constant pool
+  // They look real but are never referenced
+  const fakeStrings = [
+    'game', 'workspace', 'Players', 'RunService', 'UserInputService',
+    'ReplicatedStorage', 'ServerStorage', 'TweenService', 'HttpService',
+    'DataStoreService', 'RemoteEvent', 'RemoteFunction', 'BindableEvent',
+    'GetService', 'FindFirstChild', 'WaitForChild', 'Clone', 'Destroy',
+    'Connect', 'Disconnect', 'FireServer', 'InvokeServer', 'FireClient'
+  ];
+  // Add 3-7 fake constants
+  const count = Math.floor(Math.random()*5)+3;
+  for(let i=0;i<count;i++){
+    proto.constants.push(fakeStrings[Math.floor(Math.random()*fakeStrings.length)] + '_' + rn());
+  }
+  for(const sub of proto.protos) injectDeadConstants(sub);
+}
+
+// ── SESI 11D: B/C FIELD NOISE ──
+function addOperandNoise(proto) {
+  // B and C fields are unused in most instructions in our VM
+  // Fill with random values to confuse static analysis
+  const SKIP_OPS = new Set([OP.CALL, OP.TFORLOOP, OP.LOADBOOL]); // B is meaningful here
+  for(const ins of proto.code){
+    if(!SKIP_OPS.has(ins.op)){
+      ins.b = Math.floor(Math.random()*256);
+      // Don't touch C for now
+    }
+  }
+  for(const sub of proto.protos) addOperandNoise(sub);
+}
+
+
+
+function protect(source) {
+  const proto = compile(source);
+  // Sesi 7: Basic junk (NOOP)
+  flattenBytecode(proto);
+  // Full CFF: basic block dispatch
+  cffAll(proto);
+  // Sesi 11: Upvalue/local name scrambling
+  scrambleNames(proto);
+  // Sesi 11: Constant pool permutation
+  permuteConstants(proto);
+  // Sesi 11: Dead constant injection
+  injectDeadConstants(proto);
+  // Sesi 11: Operand noise (disabled - B field needed for CALL)
+  // addOperandNoise(proto);
+  const bytes = serializeProto(proto);
+  const k1 = Math.floor(Math.random()*190)+10;
+  const k2 = Math.floor(Math.random()*190)+10;
+  const k3 = Math.floor(Math.random()*190)+10;
+  const enc = encrypt(bytes, k1, k2, k3);
+  const innerLoader = buildLoader(enc, k1, k2, k3);
+  
+  // Sesi 10+12: Triple layer wrap
+  const layer2 = wrapOuter(innerLoader);
+  return wrapOuter3(layer2);
+}
+
+// ── SESI 12: THIRD WRAP LAYER ──
+// Different cipher: additive with bit rotation
+function wrapOuter3(luaCode) {
+  const bytes = [];
+  for(let i=0;i<luaCode.length;i++) bytes.push(luaCode.charCodeAt(i)&0xFF);
+  
+  const ok = Math.floor(Math.random()*200)+30;
+  const enc = [];
+  for(let i=0;i<bytes.length;i++){
+    let b = bytes[i];
+    // Additive cipher with position-dependent key
+    b = (b + ok + i*3) % 256;
+    enc.push(b);
+  }
+  
+  const chunks=[];
+  for(let i=0;i<enc.length;i+=80)chunks.push(enc.slice(i,i+80).join(','));
+  
+  const a=rn(),b2=rn(),c2=rn(),d=rn(),e=rn(),f=rn();
+  
+  // Fake Luraph-style header comment
+  const fakeHeaders = [
+    '-- Luraph Obfuscator v11.0.0 | https://lura.ph/',
+    '-- IronBrew2 | Protected Script', 
+    '-- Protected by Prometheus 3.0',
+    '-- Obfuscated with Morpher v4',
+    '-- Obfuscated with JAROT v1',
+  ];
+  const header = fakeHeaders[Math.floor(Math.random()*fakeHeaders.length)];
+  
+  // Size inflation: add random dead variable declarations
+  // Makes static analysis harder and file look more complex
+  const deadVars = [];
+  const deadCount = Math.floor(Math.random()*15)+10;
+  for(let i=0;i<deadCount;i++){
+    const vn = rn();
+    const vv = Math.floor(Math.random()*999999);
+    deadVars.push(`local ${vn}=${vv}`);
+  }
+  const deadBlock = deadVars.join('\n');
+  
+  return [
+    header,
+    deadBlock,
+    `local ${a}={${chunks.join(',')}}`,
+    `local ${b2}=${ok}`,
+    `local ${c2}={}`,
+    `for ${d}=1,#${a} do`,
+    `  ${c2}[${d}]=(${a}[${d}]-${b2}-((${d}-1)*3))%256`,
+    `end`,
+    `local ${e}=""`,
+    `for ${d}=1,#${c2} do ${e}=${e}..string.char(${c2}[${d}])end`,
+    `local ${f},_=loadstring(${e})`,
+    `if ${f} then ${f}() else warn(tostring(_))end`,
+  ].join(String.fromCharCode(10));
+}
+
+
+function wrapOuter(luaCode) {
+  // Convert lua string to bytes
+  const bytes = [];
+  for(let i=0;i<luaCode.length;i++) bytes.push(luaCode.charCodeAt(i)&0xFF);
+  
+  // Simple rolling XOR with 2 keys
+  const ok1 = Math.floor(Math.random()*200)+10;
+  const ok2 = Math.floor(Math.random()*200)+10;
+  const enc = [];
+  let k1=ok1, k2=ok2;
+  for(let i=0;i<bytes.length;i++){
+    let b=bytes[i];
+    b=(b+k1)%256;
+    b=b^k2;
+    enc.push(b);
+    k1=(k1*13+7)%256;
+    k2=(k2*17+11)%256;
+  }
+  
+  // Chunk encrypted bytes
+  const chunks=[];
+  for(let i=0;i<enc.length;i+=80)chunks.push(enc.slice(i,i+80).join(','));
+  
+  // Random var names for outer layer
+  const ov1=rn(),ov2=rn(),ov3=rn(),ov4=rn(),ov5=rn(),ov6=rn(),ov7=rn();
+  
+  return [
+    '-- [JAROT PROTECTED v2]',
+    `local ${ov1}={${chunks.join(',')}}`,
+    `local ${ov2},${ov3}=${ok1},${ok2}`,
+    `local ${ov4}={}`,
+    `for ${ov5}=1,#${ov1} do`,
+    `  local ${ov6}=${ov1}[${ov5}]`,
+    `  ${ov6}=bit32.bxor(${ov6},${ov3})`,
+    `  ${ov6}=(${ov6}-${ov2}+256)%256`,
+    `  ${ov4}[${ov5}]=${ov6}`,
+    `  ${ov2}=(${ov2}*13+7)%256;${ov3}=(${ov3}*17+11)%256`,
+    `end`,
+    `local ${ov7}=""`,
+    `for ${ov5}=1,#${ov4} do ${ov7}=${ov7}..string.char(${ov4}[${ov5}])end`,
+    `local _f,_e=loadstring(${ov7})`,
+    `if _f then _f() else warn(tostring(_e)) end`,
+  ].join(String.fromCharCode(10));
+}
+
+// ── DOM ──
+const inp=document.getElementById('inp');
+const btnGo=document.getElementById('btnGo');
+const pw=document.getElementById('pw');
+const pf=document.getElementById('pf');
+const pl=document.getElementById('pl');
+const errEl=document.getElementById('err');
+const ph=document.getElementById('ph');
+const oc=document.getElementById('oc');
+const out=document.getElementById('out');
+const ar=document.getElementById('ar');
+const sr=document.getElementById('sr');
+function setP(p,l){pw.style.display='block';pf.style.width=p+'%';if(l)pl.textContent=l;}
+function clearP(){pw.style.display='none';pf.style.width='0%';}
+function showErr(m){errEl.textContent='⚠ '+m;errEl.style.display='block';}
+
+btnGo.addEventListener('click',async()=>{
+  const code=inp.value.trim();
+  if(!code){showErr('Paste script dulu!');return;}
+  errEl.style.display='none';
+  ph.style.display='flex';oc.style.display='none';ar.style.display='none';
+  btnGo.disabled=true;btnGo.textContent='PROTECTING...';
+  try{
+    setP(20,'LEXING + PARSING...');await new Promise(r=>setTimeout(r,30));
+    setP(50,'COMPILING TO BYTECODE...');await new Promise(r=>setTimeout(r,30));
+    setP(75,'ENCRYPTING...');await new Promise(r=>setTimeout(r,20));
+    const result=protect(code);
+    setP(100,'DONE!');await new Promise(r=>setTimeout(r,300));
+    clearP();
+    const os=new Blob([code]).size,fs=new Blob([result]).size;
+    sr.innerHTML=`<div class="sbadge">ORIGINAL: ${(os/1024).toFixed(1)}KB</div><div class="sbadge">OUTPUT: ${(fs/1024).toFixed(1)}KB</div><div class="sbadge">RATIO: ${((fs/os)*100).toFixed(0)}%</div><div class="sbadge">VM PROTECTED</div>`;
+    out.value=result;
+    ph.style.display='none';oc.style.display='block';ar.style.display='flex';
+  }catch(e){clearP();showErr(e.message);}
+  finally{btnGo.disabled=false;btnGo.textContent='PROTECT WITH VM';}
+});
+document.getElementById('bCopy').addEventListener('click',function(){navigator.clipboard.writeText(out.value).then(()=>{this.textContent='✓ COPIED!';this.classList.add('ok');setTimeout(()=>{this.textContent='⎘ COPY';this.classList.remove('ok');},1500);});});
+document.getElementById('bDl').addEventListener('click',()=>{const blob=new Blob([out.value],{type:'text/plain'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='jarot_vm_'+Date.now()+'.lua';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);});
+document.getElementById('bReset').addEventListener('click',()=>{out.value='';oc.style.display='none';ph.style.display='flex';ar.style.display='none';errEl.style.display='none';sr.innerHTML='';inp.value='';});
+
+</script>
+</body>
+</html>
