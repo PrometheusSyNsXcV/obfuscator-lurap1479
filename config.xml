@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.byjarot.app" version="1.0.0"
+    xmlns="http://www.w3.org/ns/widgets"
+    xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <n>OBFUSCATOR LURAP1</n>
+    <description>Built with JAROT BUILDER APK by JAROT404</description>
+    <author email="dev@jarot404.dev" href="https://jarot404.dev">JAROT404</author>
+    <content src="index.html"/>
+    <access origin="*"/>
+    <allow-intent href="http://*/*"/>
+    <allow-intent href="https://*/*"/>
+    <allow-intent href="tel:*"/>
+    <allow-intent href="sms:*"/>
+    <allow-intent href="mailto:*"/>
+    <preference name="android-minSdkVersion" value="21"/>
+    <preference name="android-targetSdkVersion" value="34"/>
+    <preference name="Orientation" value="default"/>
+    <preference name="Fullscreen" value="true"/>
+    <preference name="AndroidWindowSoftInputMode" value="adjustResize"/>
+    <preference name="DisallowOverscroll" value="true"/>
+    <preference name="AllowInlineMediaPlayback" value="true"/>
+    <platform name="android"><allow-intent href="market:*"/></platform>
+    <plugin name="cordova-plugin-whitelist" spec="^1.3.4"/>
+    <plugin name="cordova-plugin-statusbar" spec="^3.0.0"/>
+    <plugin name="cordova-plugin-splashscreen" spec="^6.0.0"/>
+</widget>
